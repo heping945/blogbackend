@@ -7,6 +7,18 @@ verify_ssl = true
 
 [packages]
 django = "==1.11.15"
+djangorestframework = "*"
+django-filter = "*"
+django-cors-headers = "*"
+django-ckeditor = "*"
+social-auth-app-django = "*"
+unidecode = "*"
+django-redis = "*"
+djangorestframework-jwt = "*"
+drf-extensions = "*"
+pymysql = "*"
+coreapi = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.6"

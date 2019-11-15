@@ -1,0 +1,1 @@
+webpackJsonp([8],{c27y:function(e,t,s){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n={render:function(){var e=this.$createElement;return(this._self._c||e)("div",{attrs:{id:"about"}},[this._v("ssssssssss")])},staticRenderFns:[]};var a=s("C7Lr")({name:"About"},n,!1,function(e){s("u2/a")},"data-v-ae3180ee",null);t.default=a.exports},"u2/a":function(e,t){}});

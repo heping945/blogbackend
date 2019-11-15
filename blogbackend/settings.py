@@ -25,9 +25,9 @@ SECRET_KEY = '1*0dr^!@s)cbka5di%6(&n=(czavrateuf%gaw^!!c7(fg@7kv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
-
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '106.14.176.87','.zhaoheping.com']
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,13 +37,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts.apps.AccountsConfig',
+    'blog.apps.BlogConfig',
+    'fileserver.apps.FileserverConfig',
+    'subject.apps.SubjectConfig',
+    'operation.apps.OperationConfig',
+    'comment.apps.CommentConfig',
+    'info.apps.InfoConfig',
+
+    'xadmin',
+    'django_filters',
+    'crispy_forms',
+    'rest_framework',
+    'corsheaders',
+    'ckeditor',
+    'social_django'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -51,10 +67,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'blogbackend.urls'
 
+# 配置默认用户模型
+AUTH_USER_MODEL = 'accounts.UserProfile'
+
+CORS_ORIGIN_ALLOW_ALL = True  # 新增的跨域访问设置
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        ,
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -62,6 +84,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -69,17 +93,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blogbackend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'db04',
+        'USER': 'root',
+        # 'PASSWORD': 'Zhp19950118.',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB;'}
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -99,22 +127,81 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#  认证邮箱登录
+AUTHENTICATION_BACKENDS = (
+    'accounts.auth.CustomBackend',
+    'social_core.backends.weixin.WeixinOAuth2',  # 使用微信登录
+    'social_core.backends.qq.QQOAuth2',  # 使用QQ登录
+    'social_core.backends.weibo.WeiboOAuth2',  # 使用微博登录
+    'django.contrib.auth.backends.ModelBackend',  # 指定django的ModelBackend类
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
-
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'collect_static')
+
+# specify media root for user uploaded files,
+# 指定文件上传存储目录
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# 设置浏览器访问路径
+MEDIA_URL = '/media/'
+
+REST_FRAMEWORK = {
+    # 默认版本控制
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    "ALLOWED_VERSIONS": ['v1', 'v2'],
+    'DEFAULT_VERSION': 'v1',
+    # 分页
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+    # 过滤
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    # 认证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+}
+
+# jwt配置
+import datetime
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'accounts.utils.jwt_response_payload_handler',
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
+        }
+    }
+}
+
+REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60  # 秒
+}
